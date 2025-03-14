@@ -1,0 +1,66 @@
+#### <wh-> extraction script ####
+#### Miriam Neuhausen & Beke Hansen ####
+#### step 1: remove boundaries between HH and W (e.g. in FAVE-force-alignment ####
+
+## check tiers, list number, path (in the bottom of this script):
+
+#get tier
+phone_tier = 5
+word_tier = 6
+
+#list number in PRAAT
+sound_number = 8
+textgrid_number = 7
+
+file_name$ = selected$("TextGrid")
+
+#change path
+
+####
+
+writeInfoLine: "Removing boundaries..."
+
+#Extract the names of the Praat objects
+thisSound$ = selected$("Sound")
+thisTextGrid$ = selected$("TextGrid")
+
+#Extract the number of intervals in the phoneme tier
+# This is so that we know how many iterations to do in the for loop
+select TextGrid 'thisTextGrid$'
+numberOfPhonemes = Get number of intervals: phone_tier
+numberOfWords = Get number of intervals: word_tier
+appendInfoLine: "There are ", numberOfPhonemes, " phonemes and ", numberOfWords, " words."
+
+select Sound 'thisSound$'
+
+#loop through each interval on the phoneme tier
+for thisInterval from 1 to numberOfPhonemes
+
+	#Get the label of the interval
+	select TextGrid 'thisTextGrid$'
+	thisPhoneme$= Get label of interval: phone_tier, thisInterval
+	if thisPhoneme$ = "W"
+
+		# get preceding segment
+		select TextGrid 'thisTextGrid$'
+		soundiminusone$ = "0"
+
+		if thisInterval > 2
+			soundiminusone$ = Get label of interval... phone_tier thisInterval-1
+		endif
+
+		# if the label of the preceding interval is a HH sound, remove the left boundary so that we have HHW as one sound
+		item$ = ""
+			if soundiminusone$ == "HH"
+				item$ = "HW"
+				thisPhonemeStartTime = Get start point: phone_tier, thisInterval
+				Remove left boundary... phone_tier thisInterval
+			endif
+	endif
+endfor
+
+selectObject: textgrid_number
+Save as text file: "/Volumes/NO NAME/Documents/SocPhon/Praat/WH/"+ file_name$ +"_hhw_removed_boundaries.TextGrid"
+appendInfoLine: newline$, newline$, "Whoo-hoo! It didn't crash!"
+
+
